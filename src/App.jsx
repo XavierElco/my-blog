@@ -1,33 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React, { useState, useEffect } from 'react'
 import './App.scss'
+import Posts from './components/Posts.jsx'
+import Pagination from './components/Pagination.jsx'
+import axios from 'axios'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [posts, setPosts] = useState([])
+  const [loading, setLodaing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 10;
 
+  useEffect(() => {
+    const fetchPosts = async() => {
+      setLodaing(true);
+      const url = "https://jsonplaceholder.typicode.com/posts"
+      const res = await axios.get(url);
+      console.log("res", res);
+      setPosts(res.data);
+      setLodaing(false);
+    };
+    fetchPosts();
+  },[])
+
+  //Get current posts
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+     <div className="container">
+      <h1 className="text-primary">My Blog</h1>
+      <Posts currentPosts={currentPosts} loading = {loading}></Posts>
+      <Pagination 
+        paginate={paginate}
+        postsPerPage={postsPerPage}
+        currentPage={currentPage}
+        totalPosts={posts.length}
+        />
+     </div>
     </>
   )
 }
